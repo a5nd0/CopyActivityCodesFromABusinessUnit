@@ -1,0 +1,42 @@
+const client = platformClient.ApiClient.instance;
+client.setEnvironment(platformClient.PureCloudRegionHosts.us_east_1); // Genesys Cloud region
+
+let apiInstance = new platformClient.WorkforceManagementApi();
+
+// Business unit IDs
+let businessUnitCopyFrom = "e8a0ec0f-931a-4536-a536-86381b7ce63d"; // String | The ID of the business unit to copy from
+let businessUnitPasteTo = "5979532e-36f3-4784-9d0f-748520bf5a2e"; // String | The ID of the business unit to paste to
+
+// Get activity codes from the business unit to copy from
+apiInstance.getWorkforcemanagementBusinessunitActivitycodes(businessUnitCopyFrom)
+  .then((data) => {
+    const activityCodes = data.entities;
+
+    // Filter activity codes with defaultCode set to false
+    const filteredActivityCodes = activityCodes.filter(activityCode => !activityCode.defaultCode);
+
+    // Add filtered activity codes to the business unit to paste to
+    let promises = filteredActivityCodes.map(activityCode => {
+      let opts = {
+        "body": activityCode
+      };
+
+      return apiInstance.postWorkforcemanagementBusinessunitActivitycodes(businessUnitPasteTo, opts);
+    });
+
+    Promise.all(promises)
+      .then((results) => {
+        console.log("All activity codes copied successfully:");
+        results.forEach((data, index) => {
+          console.log(`Activity Code ${index + 1}: ${JSON.stringify(data, null, 2)}`);
+        });
+      })
+      .catch((err) => {
+        console.log("There was a failure calling postWorkforcemanagementBusinessunitActivitycodes");
+        console.error(err);
+      });
+  })
+  .catch((err) => {
+    console.log("There was a failure calling getWorkforcemanagementBusinessunitActivitycodes");
+    console.error(err);
+  });
